@@ -4,7 +4,7 @@ var chalk    = require('chalk');
 var findup   = require('findup-sync');
 var mkdirp   = require('mkdirp');
 var walkSync = require('walk-sync');
-var JSHINT   = require('jshint').JSHINT;
+var JSHINT   = require('coffeelint').lint;
 var helpers  = require('broccoli-kitchen-sink-helpers');
 var Filter   = require('broccoli-filter');
 
@@ -41,7 +41,6 @@ JSHinter.prototype.write = function (readTree, destDir) {
       var jshintPath = self.jshintrcPath || path.join(srcDir, self.jshintrcRoot || '');
       self.jshintrc = self.getConfig(jshintPath);
     }
-
     return mapSeries(paths, function (relativePath) {
       if (relativePath.slice(-1) === '/') {
         mkdirp.sync(destDir + '/' + relativePath)
@@ -65,11 +64,14 @@ JSHinter.prototype.write = function (readTree, destDir) {
 }
 
 JSHinter.prototype.processString = function (content, relativePath) {
+  //config = { "arrow_spacing": { "level": "error" } }
   var passed = JSHINT(content, this.jshintrc);
-  var errors = this.processErrors(relativePath, JSHINT.errors);
 
-  if (!passed && this.log) {
-    this.logError(errors);
+  var errors = this.processErrors(relativePath, passed);
+
+  if (errors && this.log) {
+    this.logError(errors)
+    //this._errors.push(chalk['red'](errors) + "\n");
   }
 
   if (!this.disableTestGenerator) {
@@ -87,10 +89,11 @@ JSHinter.prototype.processErrors = function (file, errors) {
   if (len === 0) { return ''; }
 
   for (idx=0; idx<len; idx++) {
+    
     error = errors[idx];
     if (error !== null) {
-      str += file  + ': line ' + error.line + ', col ' +
-        error.character + ', ' + error.reason + '\n';
+      str += file  + ': line ' + error.lineNumber + ', message ' +
+        error.message + ', ' + error.rule + '\n';
     }
   }
 
@@ -111,6 +114,7 @@ JSHinter.prototype.testGenerator = function(relativePath, passed, errors) {
 };
 
 JSHinter.prototype.logError = function(message, color) {
+
   color = color || 'red';
 
   this._errors.push(chalk[color](message) + "\n");

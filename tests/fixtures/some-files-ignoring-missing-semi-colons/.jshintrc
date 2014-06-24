@@ -1,3 +1,1 @@
-{
-  "asi": true
-}
+{ "arrow_spacing": { "level": "warn" } }
