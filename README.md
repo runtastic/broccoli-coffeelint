@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/rjackson/broccoli-jshint.svg?branch=master)](https://travis-ci.org/rjackson/broccoli-jshint)
 
-Run JSHint on the provided tree.
+Run Coffeelint on the provided tree.
 
 ## Usage
 

@@ -27,16 +27,15 @@ function CoffeeLint (inputTree, options) {
   }
 };
 
-CoffeeLint.prototype.extensions = ['js'];
+CoffeeLint.prototype.extensions = ['coffee'];
 CoffeeLint.prototype.targetExtension = 'coffeelint.js';
 
 CoffeeLint.prototype.write = function (readTree, destDir) {
   var self = this
   self._errors = [];
-
+  
   return readTree(this.inputTree).then(function (srcDir) {
     var paths = walkSync(srcDir)
-  
     if (!self.coffeelintJSON) {
       var coffeelintPath  = self.coffeelintJSONPath || path.join(srcDir, self.coffeelintJSONRoot || '');
       self.coffeelintJSON = self.getConfig(coffeelintPath);
