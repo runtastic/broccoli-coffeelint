@@ -1,37 +1,37 @@
 # Broccoli Coffeelint
 
-[![Build Status](https://travis-ci.org/rjackson/broccoli-jshint.svg?branch=master)](https://travis-ci.org/rjackson/broccoli-jshint)
+Based on [![Build Status](https://travis-ci.org/rjackson/broccoli-jshint.svg?branch=master)](https://travis-ci.org/rjackson/broccoli-jshint).
 
 Run Coffeelint on the provided tree.
 
 ## Usage
 
 ```javascript
-var jshintTree = require('broccoli-jshint');
+var coffeelintTree = require('broccoli-coffeelint');
 
 // assuming someTree is a built up tree
-var tree = jshintTree(someTree);
+var tree = coffeelintTree(someTree);
 ```
 
 ## Documentation
 
-### `jshintTree(inputTree, options)`
+### `coffeelintTree(inputTree, options)`
 
 ---
 
-`options.jshintrcRoot` *{String}*
+`options.coffeelintJSONRoot` *{String}*
 
-Will look in the root of the provided tree for a `.jshintrc`. If you would prefer to use another specific root
-for looking up your JSHint config, supply this option.
+Will look in the root of the provided tree for a `coffeelint.json`. If you would prefer to use another specific root
+for looking up your coffeelint config, supply this option.
 
 Default: **input tree root**
 
 ---
 
-`options.jshintrcPath` *{String}*
+`options.coffeelintJSONPath` *{String}*
 
-Specify the path to the `.jshintrc` that you would like to use. Use this option if you would like to use a `.jshintrc`
-file from a path that is not in the same heirarchy as your input tree (if it is use the `.jshintrcRoot`).
+Specify the path to the `coffeelint.json` that you would like to use. Use this option if you would like to use a `coffeelint.json`
+file from a path that is not in the same hierarchy as your input tree (if it is use the `coffeelint.json`).
 
 Default: **undefined**
 
@@ -69,8 +69,8 @@ var path = require('path');
 
 function(relativePath, errors) {
   return "module('" + path.dirname(relativePath) + '");";
-         "test('" + relativePath + "' should pass jshint', function() { " +
-         "  ok(passed, moduleName+" should pass jshint."+(errors ? "\n"+errors : '')); " +
+         "test('" + relativePath + "' should pass coffeelint', function() { " +
+         "  ok(passed, moduleName+" should pass coffeelint."+(errors ? "\n"+errors : '')); " +
          "});
 };
 ```

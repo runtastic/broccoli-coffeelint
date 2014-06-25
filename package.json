@@ -1,24 +1,24 @@
 {
-  "name": "broccoli-jshint",
+  "name": "broccoli-coffeelint",
   "version": "0.5.1",
-  "description": "Broccoli plugin run JSHint on a specific tree.",
+  "description": "Broccoli plugin run coffeelint on a specific tree.",
   "main": "index.js",
-  "author": "Robert Jackson",
+  "author": "Lisa Jedinger",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rjackson/broccoli-jshint.git"
+    "url": "https://github.com/runtastic/broccoli-jshint"
   },
   "scripts": {
     "test": "mocha tests/"
   },
   "keywords": [
     "broccoli-plugin",
-    "jshint",
+    "coffeelint",
     "javascript"
   ],
   "dependencies": {
-    "jshint": "~2.5.0",
+    "coffeelint": "~1.5.0",
     "chalk": "~0.4.0",
     "broccoli-filter": "~0.1.6",
     "findup-sync": "~0.1.3",

@@ -1,17 +1,17 @@
 'use strict';
 
-var path       = require('path');
-var jshintTree = require('..');
-var expect     = require('expect.js');
-var rimraf     = require('rimraf');
-var root       = process.cwd();
-var fs         = require('fs');
-var broccoli   = require('broccoli');
+var path           = require('path');
+var coffeelintTree = require('..');
+var expect         = require('expect.js');
+var rimraf         = require('rimraf');
+var root           = process.cwd();
+var fs             = require('fs');
+var broccoli       = require('broccoli');
 
 var builder;
 
 
-describe('broccoli-jshint', function(){
+describe('broccoli-coffeelint', function(){
   var loggerOutput;
 
   function readFile(path) {
@@ -39,7 +39,7 @@ describe('broccoli-jshint', function(){
       var sourcePath = 'tests/fixtures/some-files-ignoring-trailing-semi-colons';
       chdir(sourcePath);
 
-      var tree = jshintTree('.', {
+      var tree = coffeelintTree('.', {
         logError: function(message) { loggerOutput.push(message); }
       });   
       builder = new broccoli.Builder(tree);
@@ -52,7 +52,7 @@ describe('broccoli-jshint', function(){
       var sourcePath = 'tests/fixtures/comments-in-coffeelintJSON';
       chdir(sourcePath);
 
-      var tree = jshintTree('.', {
+      var tree = coffeelintTree('.', {
         logError: function(message) { loggerOutput.push(message) }
       });
 
@@ -65,7 +65,7 @@ describe('broccoli-jshint', function(){
     it('can find a coffeelint.json in a specified coffeelintJSONRoot path', function(){
       var sourcePath = 'tests/fixtures/some-files-ignoring-trailing-semi-colons-non-default-coffeelintJSON-path';
 
-      var tree = jshintTree(sourcePath, {
+      var tree = coffeelintTree(sourcePath, {
         coffeelintJSONRoot: 'blah',
         logError: function(message) { loggerOutput.push(message) }
       });
@@ -78,7 +78,7 @@ describe('broccoli-jshint', function(){
 
     it('can find a coffeelint.json in a specified coffeelintJSONPath', function(){
       var sourcePath = 'tests/fixtures/some-files-ignoring-trailing-semi-colons';
-      var tree = jshintTree(sourcePath, {
+      var tree = coffeelintTree(sourcePath, {
         coffeelintJSONRoot: '../coffeelintJSON-outside-project-hierarchy',
         logError: function(message) { loggerOutput.push(message) }
       });
@@ -92,7 +92,7 @@ describe('broccoli-jshint', function(){
     it('can find a coffeelint.json in the root of the provided tree', function(){
       var sourcePath = 'tests/fixtures/some-files-ignoring-trailing-semi-colons';
 
-      var tree = jshintTree(sourcePath, {
+      var tree = coffeelintTree(sourcePath, {
         logError: function(message) { loggerOutput.push(message) }
       });
 
@@ -106,7 +106,7 @@ describe('broccoli-jshint', function(){
   describe('logError', function() {
     it('logs errors using custom supplied function', function(){
       var sourcePath = 'tests/fixtures/some-files-with-trailing-semi-colons';
-      var tree = jshintTree(sourcePath, {
+      var tree = coffeelintTree(sourcePath, {
         logError: function(message) { loggerOutput.push(message) }
       });
 
@@ -118,7 +118,7 @@ describe('broccoli-jshint', function(){
 
     it('does not log if `log` = false', function(){
       var sourcePath = 'tests/fixtures/some-files-with-trailing-semi-colons';
-      var tree = jshintTree(sourcePath, {
+      var tree = coffeelintTree(sourcePath, {
         logError: function(message) { loggerOutput.push(message) },
         log: false
       });
@@ -133,7 +133,7 @@ describe('broccoli-jshint', function(){
   describe('testGenerator', function() {
     it('generates test files for coffeelint errors', function(){
       var sourcePath = 'tests/fixtures/some-files-with-trailing-semi-colons';
-      var tree = jshintTree(sourcePath, {
+      var tree = coffeelintTree(sourcePath, {
         destFile: 'coffeelint-tests.js',
         logError: function(message) { loggerOutput.push(message) }
       });
@@ -150,7 +150,7 @@ describe('broccoli-jshint', function(){
       var escapeErrorStringCalled = false;
       var sourcePath = 'tests/fixtures/some-files-with-trailing-semi-colons';
       
-      var tree = jshintTree(sourcePath, {
+      var tree = coffeelintTree(sourcePath, {
         logError: function(message) { loggerOutput.push(message) },
         escapeErrorString: function(string) {
           escapeErrorStringCalled = true;
@@ -168,7 +168,7 @@ describe('broccoli-jshint', function(){
 
     it('does not generate tests if disableTestGenerator is set', function(){
       var sourcePath = 'tests/fixtures/some-files-with-trailing-semi-colons';
-      var tree      = jshintTree(sourcePath, {
+      var tree      = coffeelintTree(sourcePath, {
         destFile: 'coffeelint-tests.js',
         logError: function(message) { loggerOutput.push(message) },
         disableTestGenerator: true
@@ -187,7 +187,7 @@ describe('broccoli-jshint', function(){
     var tree;
 
     beforeEach(function() {
-      tree = jshintTree('.', {
+      tree = coffeelintTree('.', {
         logError: function(message) { loggerOutput.push(message) }
       });
     });
