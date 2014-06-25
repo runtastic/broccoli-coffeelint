@@ -33,6 +33,7 @@ CoffeeLint.prototype.targetExtension = 'coffeelint.js';
 CoffeeLint.prototype.write = function (readTree, destDir) {
   var self = this
   self._errors = [];
+  self._errorLength = 0;
   
   return readTree(this.inputTree).then(function (srcDir) {
     var paths = walkSync(srcDir)
@@ -55,9 +56,9 @@ CoffeeLint.prototype.write = function (readTree, destDir) {
   })
   .finally(function() {
     if (self._errors.length > 0) {
-      var label = ' CoffeeLint Error' + (self._errors.length > 1 ? 's' : '')
+      var label = ' CoffeeLint Error' + (self._errorLength > 1 ? 's' : '')
       console.log('\n' + self._errors.join('\n'));
-      console.log(chalk.yellow('===== ' + self._errors.length + label + '\n'));
+      console.log(chalk.yellow('===== ' + self._errorLength + label + '\n'));
     }
   })
 }
@@ -65,6 +66,7 @@ CoffeeLint.prototype.write = function (readTree, destDir) {
 CoffeeLint.prototype.processString = function (content, relativePath) {
   var passed = COFFEELINT(content, this.coffeelintJSON);
   var errors = this.processErrors(relativePath, passed);
+  this._errorLength += passed.length
   if (errors && this.log) {
     this.logError(errors)
   }
@@ -82,16 +84,27 @@ CoffeeLint.prototype.processErrors = function (file, errors) {
   error, idx;
 
   if (len === 0) { return ''; }
-
+  str += '============================================================\n';
+  str += file + ' (' + len + ' error' + ((len === 1) ? '' : 's') + '):\n';
   for (idx=0; idx<len; idx++) {   
     error = errors[idx];
     if (error !== null) {
-      str += file  + ': line ' + error.lineNumber + ', message: ' +
-        error.message;
+      str += '------------------------------------------------------------\n'
+      if (error.level) {
+        str += 'level: ' + error.level + '\n';
+      }
+      str += 'line: ' + error.lineNumber + '\n';
+      str += 'rule: ' + error.rule + '\n';   
+      str += 'message: ' + error.message + '\n';
+      if (error.line) {
+        str += error.line + '\n';
+      }
+      if (error.context) {
+        str += error.context + '\n';
+      }
     }
   }
-
-  return str + "\n" + len + ' error' + ((len === 1) ? '' : 's') + "\n";
+  return str;
 }
 
 CoffeeLint.prototype.testGenerator = function(relativePath, passed, errors) {
@@ -108,9 +121,7 @@ CoffeeLint.prototype.testGenerator = function(relativePath, passed, errors) {
 };
 
 CoffeeLint.prototype.logError = function(message, color) {
-
   color = color || 'red';
-
   this._errors.push(chalk[color](message) + "\n");
 };
 
