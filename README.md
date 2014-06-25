@@ -1,6 +1,6 @@
 # Broccoli Coffeelint
 
-Based on [![Build Status](https://travis-ci.org/rjackson/broccoli-jshint.svg?branch=master)](https://travis-ci.org/rjackson/broccoli-jshint).
+Based on Broccoli-JSHint [![Build Status](https://travis-ci.org/rjackson/broccoli-jshint.svg?branch=master)](https://travis-ci.org/rjackson/broccoli-jshint).
 
 Run Coffeelint on the provided tree.
 
