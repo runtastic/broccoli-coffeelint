@@ -1,4 +1,4 @@
-# Broccoli JSHint
+# Broccoli Coffeelint
 
 [![Build Status](https://travis-ci.org/rjackson/broccoli-jshint.svg?branch=master)](https://travis-ci.org/rjackson/broccoli-jshint)
 

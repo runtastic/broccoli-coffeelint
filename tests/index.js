@@ -40,7 +40,7 @@ describe('broccoli-jshint', function(){
       chdir(sourcePath);
 
       var tree = jshintTree('.', {
-        logError: function(message) { loggerOutput.push(message) }
+        logError: function(message) { loggerOutput.push(message); }
       });
 
       builder = new broccoli.Builder(tree);

@@ -1,19 +1,19 @@
-var fs       = require('fs');
-var path     = require('path');
-var chalk    = require('chalk');
-var findup   = require('findup-sync');
-var mkdirp   = require('mkdirp');
-var walkSync = require('walk-sync');
-var JSHINT   = require('coffeelint').lint;
-var helpers  = require('broccoli-kitchen-sink-helpers');
-var Filter   = require('broccoli-filter');
+var fs         = require('fs');
+var path       = require('path');
+var chalk      = require('chalk');
+var findup     = require('findup-sync');
+var mkdirp     = require('mkdirp');
+var walkSync   = require('walk-sync');
+var COFFEELINT = require('coffeelint').lint;
+var helpers    = require('broccoli-kitchen-sink-helpers');
+var Filter     = require('broccoli-filter');
 
-var mapSeries = require('promise-map-series')
+var mapSeries  = require('promise-map-series')
 
-JSHinter.prototype = Object.create(Filter.prototype);
-JSHinter.prototype.constructor = JSHinter;
-function JSHinter (inputTree, options) {
-  if (!(this instanceof JSHinter)) return new JSHinter(inputTree, options);
+CoffeeLint.prototype = Object.create(Filter.prototype);
+CoffeeLint.prototype.constructor = CoffeeLint;
+function CoffeeLint (inputTree, options) {
+  if (!(this instanceof CoffeeLint)) return new CoffeeLint(inputTree, options);
 
   options = options || {};
 
@@ -27,19 +27,19 @@ function JSHinter (inputTree, options) {
   }
 };
 
-JSHinter.prototype.extensions = ['js'];
-JSHinter.prototype.targetExtension = 'jshint.js';
+CoffeeLint.prototype.extensions = ['js'];
+CoffeeLint.prototype.targetExtension = 'coffeelint.js';
 
-JSHinter.prototype.write = function (readTree, destDir) {
+CoffeeLint.prototype.write = function (readTree, destDir) {
   var self = this
   self._errors = [];
 
   return readTree(this.inputTree).then(function (srcDir) {
     var paths = walkSync(srcDir)
-
-    if (!self.jshintrc) {
-      var jshintPath = self.jshintrcPath || path.join(srcDir, self.jshintrcRoot || '');
-      self.jshintrc = self.getConfig(jshintPath);
+  
+    if (!self.coffeelintJSON) {
+      var coffeelintPath  = self.coffeelintJSONPath || path.join(srcDir, self.coffeelintJSONRoot || '');
+      self.coffeelintJSON = self.getConfig(coffeelintPath);
     }
     return mapSeries(paths, function (relativePath) {
       if (relativePath.slice(-1) === '/') {
@@ -56,30 +56,26 @@ JSHinter.prototype.write = function (readTree, destDir) {
   })
   .finally(function() {
     if (self._errors.length > 0) {
-      var label = ' JSHint Error' + (self._errors.length > 1 ? 's' : '')
+      var label = ' CoffeeLint Error' + (self._errors.length > 1 ? 's' : '')
       console.log('\n' + self._errors.join('\n'));
       console.log(chalk.yellow('===== ' + self._errors.length + label + '\n'));
     }
   })
 }
 
-JSHinter.prototype.processString = function (content, relativePath) {
-  //config = { "arrow_spacing": { "level": "error" } }
-  var passed = JSHINT(content, this.jshintrc);
-
+CoffeeLint.prototype.processString = function (content, relativePath) {
+  var passed = COFFEELINT(content, this.coffeelintJSON);
   var errors = this.processErrors(relativePath, passed);
-
   if (errors && this.log) {
     this.logError(errors)
-    //this._errors.push(chalk['red'](errors) + "\n");
   }
-
+  
   if (!this.disableTestGenerator) {
     return this.testGenerator(relativePath, passed, errors);
   }
 };
 
-JSHinter.prototype.processErrors = function (file, errors) {
+CoffeeLint.prototype.processErrors = function (file, errors) {
   if (!errors) { return ''; }
 
   var len = errors.length,
@@ -88,58 +84,53 @@ JSHinter.prototype.processErrors = function (file, errors) {
 
   if (len === 0) { return ''; }
 
-  for (idx=0; idx<len; idx++) {
-    
+  for (idx=0; idx<len; idx++) {   
     error = errors[idx];
     if (error !== null) {
-      str += file  + ': line ' + error.lineNumber + ', message ' +
-        error.message + ', ' + error.rule + '\n';
+      str += file  + ': line ' + error.lineNumber + ', message: ' +
+        error.message;
     }
   }
 
-  return str + "\n" + len + ' error' + ((len === 1) ? '' : 's');
+  return str + "\n" + len + ' error' + ((len === 1) ? '' : 's') + "\n";
 }
 
-JSHinter.prototype.testGenerator = function(relativePath, passed, errors) {
+CoffeeLint.prototype.testGenerator = function(relativePath, passed, errors) {
   if (errors) {
     errors = "\\n" + this.escapeErrorString(errors);
   } else {
     errors = ""
   }
 
-  return "module('JSHint - " + path.dirname(relativePath) + "');\n" +
-         "test('" + relativePath + " should pass jshint', function() { \n" +
-         "  ok(" + !!passed + ", '" + relativePath + " should pass jshint." + errors + "'); \n" +
+  return "module('CoffeeLint - " + path.dirname(relativePath) + "');\n" +
+         "test('" + relativePath + " should pass coffeelint', function() { \n" +
+         "  ok(" + !!passed + ", '" + relativePath + " should pass coffeelint." + errors + "'); \n" +
          "});\n"
 };
 
-JSHinter.prototype.logError = function(message, color) {
+CoffeeLint.prototype.logError = function(message, color) {
 
   color = color || 'red';
 
   this._errors.push(chalk[color](message) + "\n");
 };
 
-JSHinter.prototype.getConfig = function(rootPath) {
+CoffeeLint.prototype.getConfig = function(rootPath) {
   if (!rootPath) { rootPath = process.cwd(); }
-
-  var jshintrcPath = findup('.jshintrc', {cwd: rootPath, nocase: true});
-
-  if (jshintrcPath) {
-    var config = fs.readFileSync(jshintrcPath, {encoding: 'utf8'});
-
+  var coffeelintJSONPath = findup('coffeelint.json', {cwd: rootPath, nocase: true});
+  if (coffeelintJSONPath) {
+    var config = fs.readFileSync(coffeelintJSONPath, {encoding: 'utf8'});
     try {
       return JSON.parse(this.stripComments(config));
     } catch (e) {
-      console.error(chalk.red('Error occured parsing .jshintrc.'));
+      console.error(chalk.red('Error occured parsing cofeelint.json.'));
       console.error(e.stack);
-
       return null;
     }
   }
 };
 
-JSHinter.prototype.stripComments = function(string) {
+CoffeeLint.prototype.stripComments = function(string) {
   string = string || "";
 
   string = string.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, "");
@@ -148,11 +139,11 @@ JSHinter.prototype.stripComments = function(string) {
   return string;
 };
 
-JSHinter.prototype.escapeErrorString = function(string) {
+CoffeeLint.prototype.escapeErrorString = function(string) {
   string = string.replace(/\n/gi, "\\n");
   string = string.replace(/'/gi, "\\'");
 
   return string;
 };
 
-module.exports = JSHinter;
+module.exports = CoffeeLint;
