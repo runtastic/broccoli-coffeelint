@@ -3,3 +3,4 @@ x = true and true
 x = true isnt true
 x = true is true
 x = not true
+x or= true

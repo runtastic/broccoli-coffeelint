@@ -213,4 +213,21 @@ describe('broccoli-coffeelint', function(){
       });
     });
   });
+  describe('inline comments', function() {
+    it('detects inline comments and logs errors', function(){
+      var sourcePath = 'tests/fixtures/some-files-with-inline-comments';
+      var tree = coffeelintTree(sourcePath, {
+        logError: function(message) { loggerOutput.push(message) }
+      });
+
+      builder = new broccoli.Builder(tree);
+      return builder.build().then(function(results) {
+        var joinedLoggerOutput = loggerOutput.join('\n');
+        expect(joinedLoggerOutput).to.match(/Disallows inline comments/);
+        expect(joinedLoggerOutput).not.to.match(/look-no-errors.coffee/);
+      });
+    });
+  });
+
+
 });
