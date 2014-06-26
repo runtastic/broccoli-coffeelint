@@ -1,0 +1,11 @@
+{
+  "forbidden_keywords": {
+    "forbidden": {
+      "and": "&&",
+      "or": "||",
+      "is": "==",
+      "not": "!",
+      "isnt": "!="
+    }
+  }
+}

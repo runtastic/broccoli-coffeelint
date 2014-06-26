@@ -7,6 +7,7 @@ var walkSync   = require('walk-sync');
 var COFFEELINT = require('coffeelint').lint;
 var helpers    = require('broccoli-kitchen-sink-helpers');
 var Filter     = require('broccoli-filter');
+var REGISTERRULE = require('coffeelint').registerRule;
 
 var mapSeries  = require('promise-map-series')
 
@@ -14,7 +15,7 @@ CoffeeLint.prototype = Object.create(Filter.prototype);
 CoffeeLint.prototype.constructor = CoffeeLint;
 function CoffeeLint (inputTree, options) {
   if (!(this instanceof CoffeeLint)) return new CoffeeLint(inputTree, options);
-
+  REGISTERRULE(require('./rules/forbidden-key-words.js'));
   options = options || {};
 
   this.inputTree = inputTree;
@@ -31,10 +32,9 @@ CoffeeLint.prototype.extensions = ['coffee'];
 CoffeeLint.prototype.targetExtension = 'coffeelint.js';
 
 CoffeeLint.prototype.write = function (readTree, destDir) {
-  var self = this
-  self._errors = [];
+  var self          = this
+  self._errors      = [];
   self._errorLength = 0;
-  
   return readTree(this.inputTree).then(function (srcDir) {
     var paths = walkSync(srcDir)
     if (!self.coffeelintJSON) {

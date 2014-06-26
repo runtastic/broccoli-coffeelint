@@ -7,7 +7,6 @@ var rimraf         = require('rimraf');
 var root           = process.cwd();
 var fs             = require('fs');
 var broccoli       = require('broccoli');
-
 var builder;
 
 
@@ -38,7 +37,6 @@ describe('broccoli-coffeelint', function(){
     it('uses the coffeelint.json as configuration for hinting', function(){
       var sourcePath = 'tests/fixtures/some-files-ignoring-trailing-semi-colons';
       chdir(sourcePath);
-
       var tree = coffeelintTree('.', {
         logError: function(message) { loggerOutput.push(message); }
       });   
@@ -194,6 +192,25 @@ describe('broccoli-coffeelint', function(){
 
     it('escapes single quotes properly', function() {
       expect(tree.escapeErrorString("'something'")).to.equal('\\\'something\\\'');
+    });
+  });
+
+  describe('forbidden keywords', function() {
+    it('detects the forbidden keywords and logs errors', function(){
+      var sourcePath = 'tests/fixtures/some-files-with-forbidden-keywords';
+      var tree = coffeelintTree(sourcePath, {
+        logError: function(message) { loggerOutput.push(message) }
+      });
+
+      builder = new broccoli.Builder(tree);
+      return builder.build().then(function(results) {
+        var joinedLoggerOutput = loggerOutput.join('\n');
+        expect(joinedLoggerOutput).to.match(/The "or" keyword is forbidden./);
+        expect(joinedLoggerOutput).to.match(/The "and" keyword is forbidden/);
+        expect(joinedLoggerOutput).to.match(/The "isnt" keyword is forbidden/);
+        expect(joinedLoggerOutput).to.match(/The "is" keyword is forbidden/);
+        expect(joinedLoggerOutput).to.match(/The "not" keyword is forbidden/);
+      });
     });
   });
 });
