@@ -4,7 +4,7 @@ regexes = {
   normalComment: /^\s*\#.*/,
   includesHash: /\#/,
   stringInterpolation: /".*\#{.*"/,
-  quotedHash: /['"].*([#]).*['"]/
+  quotedHash: /['"].*([#]).*['"]/,
   quotedMultilineHash: /(^|\s)['"][^'"]*([#]).*/
 };
 
