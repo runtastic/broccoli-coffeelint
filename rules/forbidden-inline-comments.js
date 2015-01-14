@@ -3,7 +3,9 @@ var ForbiddenInlineComments, regexes;
 regexes = {
   normalComment: /^\s*\#.*/,
   includesHash: /\#/,
-  stringInterpolation: /".*\#{.*"/
+  stringInterpolation: /".*\#{.*"/,
+  quotedHash: /['"].*([#]).*['"]/,
+  quotedMultilineHash: /(^|\s)['"][^'"]*([#]).*/
 };
 
 module.exports = ForbiddenInlineComments = (function() {
@@ -17,7 +19,12 @@ module.exports = ForbiddenInlineComments = (function() {
   };
 
   ForbiddenInlineComments.prototype.lintLine = function(line, lineApi) {
-    if (regexes.includesHash.test(line) && !regexes.normalComment.test(line) && !regexes.stringInterpolation.test(line))
+    var hashIsAllowed = regexes.normalComment.test(line) ||
+                        regexes.stringInterpolation.test(line) ||
+                        regexes.quotedHash.test(line) ||
+                        regexes.quotedMultilineHash.test(line);
+
+    if (regexes.includesHash.test(line) && !hashIsAllowed)
       return { context: line }
   };
 
