@@ -227,6 +227,19 @@ describe('broccoli-coffeelint', function(){
         expect(joinedLoggerOutput).not.to.match(/look-no-errors.coffee/);
       });
     });
+
+    it('allows quoted-`#` in source files', function() {
+      var sourcePath = 'tests/fixtures/some-files-with-inline-comments';
+      var tree = coffeelintTree(sourcePath, {
+        logError: function(message) { loggerOutput.push(message) }
+      });
+
+      builder = new broccoli.Builder(tree);
+      return builder.build().then(function(results) {
+        var joinedLoggerOutput = loggerOutput.join('\n');
+        expect(joinedLoggerOutput).not.to.match(/allow-quoted.coffee/);
+      });
+    });
   });
 
 
