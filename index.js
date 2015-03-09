@@ -16,7 +16,6 @@ CoffeeLint.prototype.constructor = CoffeeLint;
 function CoffeeLint (inputTree, options) {
   if (!(this instanceof CoffeeLint)) return new CoffeeLint(inputTree, options);
   REGISTERRULE(require('./rules/forbidden-key-words.js'));
-  REGISTERRULE(require('./rules/forbidden-inline-comments.js'));
   options = options || {};
 
   this.inputTree = inputTree;
