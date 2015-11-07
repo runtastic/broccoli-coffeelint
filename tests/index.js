@@ -17,13 +17,7 @@ describe('broccoli-coffeelint', function(){
     return fs.readFileSync(path, {encoding: 'utf8'});
   }
 
-  function chdir(path) {
-    process.chdir(path);
-  }
-
   beforeEach(function() {
-    chdir(root);
-
     loggerOutput = [];
   });
 
@@ -36,8 +30,8 @@ describe('broccoli-coffeelint', function(){
   describe('coffeelint.json', function() {
     it('uses the coffeelint.json as configuration for hinting', function(){
       var sourcePath = 'tests/fixtures/some-files-ignoring-trailing-semi-colons';
-      chdir(sourcePath);
-      var tree = coffeelintTree('.', {
+      var tree = coffeelintTree(sourcePath, {
+        persist: false,
         logError: function(message) { loggerOutput.push(message); }
       });   
       builder = new broccoli.Builder(tree);
@@ -48,9 +42,9 @@ describe('broccoli-coffeelint', function(){
 
     it('can handle comments in coffeelint.json', function(){
       var sourcePath = 'tests/fixtures/comments-in-coffeelintJSON';
-      chdir(sourcePath);
 
-      var tree = coffeelintTree('.', {
+      var tree = coffeelintTree(sourcePath, {
+        persist: false,
         logError: function(message) { loggerOutput.push(message) }
       });
 
@@ -64,20 +58,8 @@ describe('broccoli-coffeelint', function(){
       var sourcePath = 'tests/fixtures/some-files-ignoring-trailing-semi-colons-non-default-coffeelintJSON-path';
 
       var tree = coffeelintTree(sourcePath, {
+        persist: false,
         coffeelintJSONRoot: 'blah',
-        logError: function(message) { loggerOutput.push(message) }
-      });
-
-      builder = new broccoli.Builder(tree);
-      return builder.build().then(function() {
-        expect(loggerOutput.length).to.eql(0);
-      });
-    });
-
-    it('can find a coffeelint.json in a specified coffeelintJSONPath', function(){
-      var sourcePath = 'tests/fixtures/some-files-ignoring-trailing-semi-colons';
-      var tree = coffeelintTree(sourcePath, {
-        coffeelintJSONRoot: '../coffeelintJSON-outside-project-hierarchy',
         logError: function(message) { loggerOutput.push(message) }
       });
 
@@ -105,6 +87,7 @@ describe('broccoli-coffeelint', function(){
     it('logs errors using custom supplied function', function(){
       var sourcePath = 'tests/fixtures/some-files-with-trailing-semi-colons';
       var tree = coffeelintTree(sourcePath, {
+        persist: false,
         logError: function(message) { loggerOutput.push(message) }
       });
 
@@ -117,6 +100,7 @@ describe('broccoli-coffeelint', function(){
     it('does not log if `log` = false', function(){
       var sourcePath = 'tests/fixtures/some-files-with-trailing-semi-colons';
       var tree = coffeelintTree(sourcePath, {
+        persist: false,
         logError: function(message) { loggerOutput.push(message) },
         log: false
       });
@@ -133,6 +117,7 @@ describe('broccoli-coffeelint', function(){
       var sourcePath = 'tests/fixtures/some-files-with-trailing-semi-colons';
       var tree = coffeelintTree(sourcePath, {
         destFile: 'coffeelint-tests.js',
+        persist: false,
         logError: function(message) { loggerOutput.push(message) }
       });
 
@@ -149,6 +134,7 @@ describe('broccoli-coffeelint', function(){
       var sourcePath = 'tests/fixtures/some-files-with-trailing-semi-colons';
       
       var tree = coffeelintTree(sourcePath, {
+        persist: false,
         logError: function(message) { loggerOutput.push(message) },
         escapeErrorString: function(string) {
           escapeErrorStringCalled = true;
@@ -168,6 +154,7 @@ describe('broccoli-coffeelint', function(){
       var sourcePath = 'tests/fixtures/some-files-with-trailing-semi-colons';
       var tree      = coffeelintTree(sourcePath, {
         destFile: 'coffeelint-tests.js',
+        persist: false,
         logError: function(message) { loggerOutput.push(message) },
         disableTestGenerator: true
       });
@@ -186,6 +173,7 @@ describe('broccoli-coffeelint', function(){
 
     beforeEach(function() {
       tree = coffeelintTree('.', {
+        persist: false,
         logError: function(message) { loggerOutput.push(message) }
       });
     });
@@ -199,6 +187,7 @@ describe('broccoli-coffeelint', function(){
     it('detects the forbidden keywords and logs errors', function(){
       var sourcePath = 'tests/fixtures/some-files-with-forbidden-keywords';
       var tree = coffeelintTree(sourcePath, {
+        persist: false,
         logError: function(message) { loggerOutput.push(message) }
       });
 
@@ -217,13 +206,14 @@ describe('broccoli-coffeelint', function(){
     it('detects inline comments and logs errors', function(){
       var sourcePath = 'tests/fixtures/some-files-with-inline-comments';
       var tree = coffeelintTree(sourcePath, {
+        persist: false,
         logError: function(message) { loggerOutput.push(message) }
       });
 
       builder = new broccoli.Builder(tree);
       return builder.build().then(function(results) {
         var joinedLoggerOutput = loggerOutput.join('\n');
-        expect(joinedLoggerOutput).to.match(/Disallows inline comments/);
+        expect(joinedLoggerOutput).not.to.match(/core.coffee/);
         expect(joinedLoggerOutput).not.to.match(/look-no-errors.coffee/);
       });
     });
@@ -231,6 +221,7 @@ describe('broccoli-coffeelint', function(){
     it('allows quoted-`#` in source files', function() {
       var sourcePath = 'tests/fixtures/some-files-with-inline-comments';
       var tree = coffeelintTree(sourcePath, {
+        persist: false,
         logError: function(message) { loggerOutput.push(message) }
       });
 

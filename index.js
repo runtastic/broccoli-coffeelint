@@ -3,74 +3,73 @@ var path       = require('path');
 var chalk      = require('chalk');
 var findup     = require('findup-sync');
 var mkdirp     = require('mkdirp');
-var walkSync   = require('walk-sync');
+var Filter     = require('broccoli-persistent-filter');
+var crypto     = require('crypto');
+var stringify  = require('json-stable-stringify');
 var COFFEELINT = require('coffeelint').lint;
-var helpers    = require('broccoli-kitchen-sink-helpers');
-var Filter     = require('broccoli-filter');
 var REGISTERRULE = require('coffeelint').registerRule;
-
-var mapSeries  = require('promise-map-series')
 
 CoffeeLint.prototype = Object.create(Filter.prototype);
 CoffeeLint.prototype.constructor = CoffeeLint;
-function CoffeeLint (inputTree, options) {
-  if (!(this instanceof CoffeeLint)) return new CoffeeLint(inputTree, options);
+function CoffeeLint (inputNode, options) {
+  if (!(this instanceof CoffeeLint)) return new CoffeeLint(inputNode, options);
+
   REGISTERRULE(require('./rules/forbidden-key-words.js'));
   options = options || {};
+  if (!options.hasOwnProperty('persist')) {
+    options.persist = true;
+  }
 
-  this.inputTree = inputTree;
-  this.log       = true;
+  Filter.call(this, inputNode, {
+    annotation: options.annotation,
+    persist: options.persist
+  });
+
+  this.log     = true;
+  this.options = options;
+  this.console = console;
 
   for (var key in options) {
     if (options.hasOwnProperty(key)) {
       this[key] = options[key]
     }
   }
-};
+}
 
 CoffeeLint.prototype.extensions = ['coffee'];
 CoffeeLint.prototype.targetExtension = 'coffeelint.js';
 
-CoffeeLint.prototype.write = function (readTree, destDir) {
-  var self          = this
-  self._errors      = [];
-  self._errorLength = 0;
-  return readTree(this.inputTree).then(function (srcDir) {
-    var paths = walkSync(srcDir)
-    if (!self.coffeelintJSON) {
-      var coffeelintPath  = self.coffeelintJSONPath || path.join(srcDir, self.coffeelintJSONRoot || '');
-      self.coffeelintJSON = self.getConfig(coffeelintPath);
-    }
-    return mapSeries(paths, function (relativePath) {
-      if (relativePath.slice(-1) === '/') {
-        mkdirp.sync(destDir + '/' + relativePath)
-      } else {
-        if (self.canProcessFile(relativePath)) {
-          return self.processAndCacheFile(srcDir, destDir, relativePath)
-        } else {
-          helpers.copyPreserveSync(
-            srcDir + '/' + relativePath, destDir + '/' + relativePath)
+CoffeeLint.prototype.baseDir = function() {
+  return __dirname;
+};
+
+CoffeeLint.prototype.build = function () {
+  var self = this;
+  self._errors = [];
+
+  if (!self.coffeelintJSON) {
+    var coffeelintPath  = self.coffeelintJSONPath || path.join(this.inputPaths[0], self.coffeelintJSONRoot || '');
+    self.coffeelintJSON = self.getConfig(coffeelintPath);
+  }
+
+  return Filter.prototype.build.call(this)
+      .finally(function() {
+        if (self._errors.length > 0) {
+          var label = ' CoffeeLint Error' + (self._errorLength > 1 ? 's' : '')
+          console.log('\n' + self._errors.join('\n'));
+          console.log(chalk.yellow('===== ' + self._errorLength + label + '\n'));
         }
-      }
-    })
-  })
-  .finally(function() {
-    if (self._errors.length > 0) {
-      var label = ' CoffeeLint Error' + (self._errorLength > 1 ? 's' : '')
-      console.log('\n' + self._errors.join('\n'));
-      console.log(chalk.yellow('===== ' + self._errorLength + label + '\n'));
-    }
-  })
-}
+      })
+};
 
 CoffeeLint.prototype.processString = function (content, relativePath) {
   var passed = COFFEELINT(content, this.coffeelintJSON);
   var errors = this.processErrors(relativePath, passed);
-  this._errorLength += passed.length
+  this._errorLength += passed.length;
   if (errors && this.log) {
     this.logError(errors)
   }
-  
+
   if (!this.disableTestGenerator) {
     return this.testGenerator(relativePath, passed, errors);
   }
@@ -86,15 +85,15 @@ CoffeeLint.prototype.processErrors = function (file, errors) {
   if (len === 0) { return ''; }
   str += '============================================================\n';
   str += file + ' (' + len + ' error' + ((len === 1) ? '' : 's') + '):\n';
-  for (idx=0; idx<len; idx++) {   
+  for (idx=0; idx<len; idx++) {
     error = errors[idx];
     if (error !== null) {
-      str += '------------------------------------------------------------\n'
+      str += '------------------------------------------------------------\n';
       if (error.level) {
         str += 'level: ' + error.level + '\n';
       }
       str += 'line: ' + error.lineNumber + '\n';
-      str += 'rule: ' + error.rule + '\n';   
+      str += 'rule: ' + error.rule + '\n';
       str += 'message: ' + error.message + '\n';
       if (error.line) {
         str += error.line + '\n';
@@ -105,7 +104,7 @@ CoffeeLint.prototype.processErrors = function (file, errors) {
     }
   }
   return str;
-}
+};
 
 CoffeeLint.prototype.testGenerator = function(relativePath, passed, errors) {
   if (errors) {
@@ -133,7 +132,7 @@ CoffeeLint.prototype.getConfig = function(rootPath) {
     try {
       return JSON.parse(this.stripComments(config));
     } catch (e) {
-      console.error(chalk.red('Error occured parsing cofeelint.json.'));
+      console.error(chalk.red('Error occured parsing coffeelint.json.'));
       console.error(e.stack);
       return null;
     }
@@ -154,6 +153,24 @@ CoffeeLint.prototype.escapeErrorString = function(string) {
   string = string.replace(/'/gi, "\\'");
 
   return string;
+};
+
+CoffeeLint.prototype.optionsHash  = function() {
+  if (!this._optionsHash) {
+    this._optionsHash = crypto.createHash('md5')
+        .update(stringify(this.options), 'utf8')
+        .update(stringify(this.coffeelintJSON) || '', 'utf8')
+        .update(this.testGenerator.toString(), 'utf8')
+        .update(this.logError.toString(), 'utf8')
+        .update(this.escapeErrorString.toString(), 'utf8')
+        .digest('hex');
+  }
+
+  return this._optionsHash;
+};
+
+CoffeeLint.prototype.cacheKeyProcessString = function(string, relativePath) {
+  return this.optionsHash() + Filter.prototype.cacheKeyProcessString.call(this, string, relativePath);
 };
 
 module.exports = CoffeeLint;
