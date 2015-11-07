@@ -69,20 +69,6 @@ describe('broccoli-coffeelint', function(){
       });
     });
 
-    it('can find a coffeelint.json in a specified coffeelintJSONRoot outside project hierarchy', function(){
-      var sourcePath = 'tests/fixtures/some-files-ignoring-trailing-semi-colons';
-      var tree = coffeelintTree(sourcePath, {
-        persist: false,
-        coffeelintJSONRoot: '../coffeelintJSON-outside-project-hierarchy',
-        logError: function(message) { loggerOutput.push(message) }
-      });
-
-      builder = new broccoli.Builder(tree);
-      return builder.build().then(function() {
-        expect(loggerOutput.length).to.eql(0);
-      });
-    });
-
     it('can find a coffeelint.json in the root of the provided tree', function(){
       var sourcePath = 'tests/fixtures/some-files-ignoring-trailing-semi-colons';
 
